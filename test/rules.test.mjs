@@ -81,3 +81,15 @@ test('CLI lifecycle end to end in a temp home', () => {
   assert.match(run('status', '--today', '2026-01-20'), /\[graduated\]/);
   assert.equal(replay(JSON.parse('[]')).rules.length, 0);
 });
+
+test('regression guard: a graduated rule whose mistake returns goes back on probation, then can graduate again', () => {
+  const base = [hit('x', '2026-01-01'), hit('x', '2026-01-02'), rule('r001', 'x', '2026-01-02'),
+    { type: 'state', id: 'r001', state: 'graduated', date: '2026-01-16' }];
+  assert.equal(review(base, '2026-01-20').regress.length, 0);
+  const back = [...base, hit('x', '2026-01-21')];
+  assert.match(review(back, '2026-01-22').regress[0].reason, /regressed/);
+  const onProbation = [...back, { type: 'state', id: 'r001', state: 'active', date: '2026-01-22' }];
+  assert.equal(graduatedRules(onProbation, '2026-01-23').length, 0, 'leaves CLAUDE.md');
+  assert.equal(review(onProbation, '2026-01-23').retire.length, 0, 'not retired for the old repeat');
+  assert.equal(review(onProbation, '2026-02-05').graduate.length, 1, '14 quiet days after regressing');
+});

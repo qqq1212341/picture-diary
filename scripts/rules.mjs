@@ -9,7 +9,7 @@
 //
 // Ledger = <home>/rules.jsonl, append-only events:
 //   {"type":"hit","tag","date"}  {"type":"rule","id","tag","rule","source","created","expires"}
-//   {"type":"state","id","state":"graduated|retired","date","reason"}
+//   {"type":"state","id","state":"graduated|retired|active","date","reason"}   (active = regressed back to probation)
 //
 // Lifecycle:  hit -> hit (2 days) = CANDIDATE -> add = ACTIVE (on probation)
 //             ACTIVE + 14 days with 0 repeats = GRADUATED (earns a place in CLAUDE.md)
@@ -52,7 +52,10 @@ export function replay(events, today = ymd()) {
     const days = [...(hitDays.get(r.tag) || [])];
     const before = days.filter((d) => d <= r.created).length;
     const after = days.filter((d) => d > r.created).length;
-    return { ...r, before, after, age: daysBetween(r.created, today) };
+    const sinceState = r.stateDate ? days.filter((d) => d > r.stateDate).length : after;
+    // A regressed rule restarts probation from the day it regressed.
+    if (r.state === 'active' && r.stateDate) return { ...r, before, after: sinceState, sinceState, age: daysBetween(r.stateDate, today) };
+    return { ...r, before, after, sinceState, age: daysBetween(r.created, today) };
   });
   const tags = [...hitDays.entries()].map(([tag, set]) => ({
     tag, days: set.size, last: [...set].sort().pop(),
@@ -65,9 +68,14 @@ export function replay(events, today = ymd()) {
 export function review(events, today = ymd()) {
   const { tags, rules } = replay(events, today);
   const candidates = tags.filter((t) => t.days >= 2 && !t.hasRule);
-  const graduate = [], retire = [];
+  const graduate = [], retire = [], regress = [];
   for (const r of rules) {
     if (r.state === 'retired') continue;
+    // Regression guard: a graduated rule whose mistake comes back goes back on probation.
+    if (r.state === 'graduated') {
+      if (r.sinceState > 0) regress.push({ r, reason: `regressed: repeated ${r.sinceState}x after graduating ${r.stateDate}` });
+      continue;
+    }
     if (r.expires && today > r.expires) { retire.push({ r, reason: `expired ${r.expires}` }); continue; }
     if (r.after > 0 && r.after >= r.before) {
       retire.push({ r, reason: `repeated ${r.after}x after the rule (${r.before}x before) - it did not help` });
@@ -75,7 +83,7 @@ export function review(events, today = ymd()) {
       graduate.push({ r, reason: `${r.age} days, 0 repeats (was ${r.before}x before)` });
     }
   }
-  return { candidates, graduate, retire };
+  return { candidates, graduate, retire, regress };
 }
 
 export function graduatedRules(events, today, max = 10) {
@@ -139,11 +147,13 @@ function main(argv) {
     r.candidates.forEach((t) => console.log(`CANDIDATE ${t.tag}: repeated on ${t.days} days - write a rule`));
     r.graduate.forEach(({ r: x, reason }) => console.log(`GRADUATE  ${x.id} ${x.tag}: ${reason}\n          tip: if a hook, linter or test can enforce this, promote it there.`));
     r.retire.forEach(({ r: x, reason }) => console.log(`RETIRE    ${x.id} ${x.tag}: ${reason} - do it over`));
-    if (!r.candidates.length && !r.graduate.length && !r.retire.length) console.log('nothing to do');
+    r.regress.forEach(({ r: x, reason }) => console.log(`REGRESS   ${x.id} ${x.tag}: ${reason} - back to probation, out of CLAUDE.md until it holds again`));
+    if (!r.candidates.length && !r.graduate.length && !r.retire.length && !r.regress.length) console.log('nothing to do');
     if (has(rest, '--apply')) {
       r.graduate.forEach(({ r: x, reason }) => append(file, { type: 'state', id: x.id, state: 'graduated', date: today, reason }));
       r.retire.forEach(({ r: x, reason }) => append(file, { type: 'state', id: x.id, state: 'retired', date: today, reason }));
-    } else if (r.graduate.length || r.retire.length) console.log('(dry run - add --apply to record)');
+      r.regress.forEach(({ r: x, reason }) => append(file, { type: 'state', id: x.id, state: 'active', date: today, reason }));
+    } else if (r.graduate.length || r.retire.length || r.regress.length) console.log('(dry run - add --apply to record)');
   } else if (cmd === 'sync') {
     const target = path.resolve(flag(rest, '--file') || 'CLAUDE.md');
     const list = graduatedRules(events, today, Number(flag(rest, '--max') || 10));
