@@ -40,7 +40,7 @@ Then say **"write the diary"** (or `/picture-diary:diary`). After that it remind
 
 <img src="examples/2026-10-21.en.png" width="260"> <img src="examples/2026-10-24.en.png" width="260"> <img src="examples/2026-10-27.en.png" width="260">
 
-More in [examples/](examples/): five real days, each with a Korean version.
+More in [examples/](examples/): five real days, each in two languages.
 
 ## Why
 
@@ -141,7 +141,7 @@ The numbers in the middle column are from those papers, not from picture-diary. 
 
 ## The picture
 
-A Korean elementary-school picture diary (그림일기): date and weather, a title, a drawing, and the text on manuscript paper, one character per cell (English: one word per cell).
+A classic kid's picture diary: date and weather, a title, a drawing, and the text on grid paper, one character per cell (English: one word per cell).
 
 - **Weather = how the day went.** sun: passed · cloud: bumpy · rain: failures · storm: reverts or Stop-hook loops · fog: context was compacted and the agent forgot things.
 - **Teacher's stamp = grade from the numbers.** Good job! / Nice work / Try harder / See me after class.

@@ -1,6 +1,6 @@
 {
   "name": "picture-diary",
-  "description": "Your agent writes a daily diary centered on what it wasted, draws it as a Korean kid's picture diary PNG, and promotes repeated mistakes into rules that must prove themselves.",
+  "description": "Your agent writes a daily diary centered on what it wasted, draws it as a kid's picture diary PNG, and promotes repeated mistakes into rules that must prove themselves.",
   "version": "0.1.0",
   "author": { "name": "Dumb Game Lab" },
   "homepage": "https://github.com/qqq1212341/picture-diary",

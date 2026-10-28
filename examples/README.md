@@ -1,6 +1,6 @@
 # Real diaries from a 10-session Claude Code setup
 
-Unedited output from the author's own setup (five Claude accounts, 10+ sessions at once), one scene per day from the "wasted today" section. Project, people and money details are removed. Each page links to its Korean version and source entry.
+Unedited output from the author's own setup (five Claude accounts, 10+ sessions at once), one scene per day from the "wasted today" section. Project, people and money details are removed. Each page links to its other-language version and source entry.
 
 | | |
 |---|---|

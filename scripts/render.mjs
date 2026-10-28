@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Bake one diary entry into a Korean-style kid's picture diary page (PNG).
+// Bake one diary entry into a kid's picture diary page (PNG).
 //
 //   render.mjs <entry.json> [--lang ko|en] [--story|--wide] [--copy] [--out file.png] [--html] [--no-mask]
 //
