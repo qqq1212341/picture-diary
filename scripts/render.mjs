@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Bake one diary entry into a Korean-style kid's picture diary page (PNG).
 //
-//   render.mjs <entry.json> [--lang ko|en] [--story] [--out file.png] [--html] [--no-mask]
+//   render.mjs <entry.json> [--lang ko|en] [--story|--wide] [--copy] [--out file.png] [--html] [--no-mask]
 //
 // entry = { date, weekday?, weather: sun|cloud|rain|storm|fog, grade: great|good|try|redo,
 //           title, drawing (SVG inner markup, viewBox 0 0 1000 560), text, teacher?{comment, stamp?},
@@ -15,6 +15,7 @@ import { execFileSync } from 'node:child_process';
 import { paths, addDays } from './lib/home.mjs';
 import { gridCells, wordCells } from './lib/cells.mjs';
 import { maskPaths } from './lib/mask.mjs';
+import { wideHtml, copyPng } from './lib/share.mjs';
 
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
@@ -185,13 +186,14 @@ function installHeadlessShell() {
 export async function main(argv) {
   const flag = (k) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] : undefined; };
   const src = argv.find((a, i) => !a.startsWith('--') && !['--out', '--lang'].includes(argv[i - 1]));
-  if (!src) { console.error('usage: render.mjs <entry.json> [--lang ko|en] [--story] [--out file.png] [--html] [--no-mask]'); process.exit(2); }
+  if (!src) { console.error('usage: render.mjs <entry.json> [--lang ko|en] [--story|--wide] [--copy] [--out file.png] [--html] [--no-mask]'); process.exit(2); }
   const srcPath = path.resolve(src);
   const entry = JSON.parse(fs.readFileSync(srcPath, 'utf8'));
   const lang = flag('--lang') || entry.lang || 'ko';
   const story = argv.includes('--story');
   if (entry.streak == null && /^\d{4}-\d{2}-\d{2}\.json$/.test(path.basename(srcPath))) entry.streak = streakFor(srcPath, entry.date);
-  const suffix = `${lang === 'en' ? '.en' : ''}${story ? '.story' : ''}.png`;
+  const wide = argv.includes('--wide');
+  const suffix = `${lang === 'en' ? '.en' : ''}${story ? '.story' : ''}${wide ? '.wide' : ''}.png`;
   const p = paths();
   const inHome = path.dirname(srcPath) === p.entries;
   const out = path.resolve(flag('--out') || path.join(inHome ? p.diary : path.dirname(srcPath), path.basename(srcPath, '.json') + suffix));
@@ -215,8 +217,15 @@ export async function main(argv) {
   await page.setContent(built.html, { waitUntil: 'networkidle', timeout: 20000 }).catch(() => page.setContent(built.html));
   await page.evaluate(() => document.fonts.ready);
   await page.screenshot({ path: out });
+  if (wide) { // the wide card frames the finished page, so render the page first, then the card around it
+    const card = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 });
+    await card.setContent(wideHtml(entry, out, lang), { waitUntil: 'networkidle', timeout: 20000 }).catch(() => card.setContent(wideHtml(entry, out, lang)));
+    await card.evaluate(() => document.fonts.ready);
+    await card.screenshot({ path: out });
+  }
   await browser.close();
   console.log(out);
+  if (argv.includes('--copy')) console.error(copyPng(out) ? 'copied to clipboard' : 'could not copy (install xclip or wl-copy on Linux)');
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) await main(process.argv.slice(2));

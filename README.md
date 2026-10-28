@@ -140,7 +140,7 @@ A Korean elementary-school picture diary (그림일기): date and weather, a tit
 - **Weather = how the day went.** sun: passed · cloud: bumpy · rain: failures · storm: reverts or Stop-hook loops · fog: context was compacted and the agent forgot things.
 - **Teacher's stamp = grade from the numbers.** Good job! / Nice work / Try harder / See me after class.
 - **Red pen** = today's new rule candidate. A streak counter from day 2. A box for a parent's signature.
-- `--lang en`, `--story` (1080×1920 for Stories/Shorts), `--out file.png`. Home paths are masked before rendering.
+- `--lang en`, `--story` (1080×1920 for Stories/Shorts), `--wide` (1200×630 card for X / LinkedIn, with your repo link), `--copy` (PNG to clipboard), `--out file.png`. Home paths are masked before rendering.
 
 ```
 node scripts/render.mjs docs/sample-en.json --lang en
@@ -156,6 +156,7 @@ rules.mjs hit <tag>                          # it happened again today
 rules.mjs add --tag T --rule "..." --source diary/2026-10-23.md
 rules.mjs status [--json]                    # every rule with before / after repeat counts
 rules.mjs review [--apply]                   # candidates · graduations · retirements · regressions
+rules.mjs report                             # markdown table: did each rule reduce its mistake?
 rules.mjs sync --file CLAUDE.md [--max 10]   # rewrites only the marked block
 ```
 
@@ -175,11 +176,11 @@ hooks/            SessionStart reminder (once a day)
 skills/diary/     write the diary, draw it, update the ledger
 skills/recall/    search past diaries and rules for the current task
 scripts/          collect.mjs · render.mjs · rules.mjs · nudge.mjs
-test/             npm test (27 tests)
+test/             npm test (28 tests)
 ```
 
 ## Status
 
-v0.1. The signal heuristics (corrections, weather, grade) are starting points and will sometimes be wrong; the skill tells the agent to check the logs before claiming anything. A rule's effect is measured by whether its mistake tag recurs. That is a proxy, not proof of cause. Next up: an on/off ablation report per rule, a wide card for X/LinkedIn, copy-to-clipboard.
+v0.1. The signal heuristics (corrections, weather, grade) are starting points and will sometimes be wrong; the skill tells the agent to check the logs before claiming anything. A rule's effect is measured by whether its mistake tag recurs. That is a proxy, not proof of cause. Next up: a true on/off ablation (run the same task with and without a rule), and more drawings.
 
 Issues and PRs welcome, especially drawings. MIT · made by [Dumb Game Lab](https://dumbgamelab.com).

@@ -5,6 +5,7 @@
 //   rules.mjs add --tag T --rule "..." [--source diary/D.md] [--expires D] [--date D]
 //   rules.mjs status [--json]                  every tag and rule with before/after counts
 //   rules.mjs review [--apply]                 candidates / graduates / retirements (dry run unless --apply)
+//   rules.mjs report [--json]                  markdown table: did each rule reduce its mistake?
 //   rules.mjs sync [--file CLAUDE.md] [--max 10] [--dry-run]   write graduated rules into a marked block
 //
 // Ledger = <home>/rules.jsonl, append-only events:
@@ -94,6 +95,17 @@ export function graduatedRules(events, today, max = 10) {
 }
 
 /** Insert or replace the marked block in `text`. Pure. */
+/** Did each rule help? One row per rule: repeats before vs after, and a verdict a human can check. Pure. */
+export function report(events, today = ymd()) {
+  return replay(events, today).rules.map((r) => {
+    const verdict = r.state === 'retired' ? 'retired - did not help'
+      : r.state === 'graduated' ? (r.sinceState ? 'regressing' : 'holding')
+      : r.after === 0 ? `on probation, ${Math.max(0, GRADUATE_DAYS - r.age)} quiet day(s) to go`
+      : r.after < r.before ? 'fewer repeats, still on probation' : 'not helping yet';
+    return { id: r.id, tag: r.tag, state: r.state, before: r.before, after: r.after, days: r.age, verdict, rule: r.rule };
+  });
+}
+
 export function renderBlock(rules) {
   const lines = rules.map((r) => `- ${r.rule}`);
   return [BLOCK_START,
@@ -154,6 +166,14 @@ function main(argv) {
       r.retire.forEach(({ r: x, reason }) => append(file, { type: 'state', id: x.id, state: 'retired', date: today, reason }));
       r.regress.forEach(({ r: x, reason }) => append(file, { type: 'state', id: x.id, state: 'active', date: today, reason }));
     } else if (r.graduate.length || r.retire.length || r.regress.length) console.log('(dry run - add --apply to record)');
+  } else if (cmd === 'report') {
+    const rows = report(events, today);
+    if (has(rest, '--json')) return console.log(JSON.stringify(rows, null, 1));
+    if (!rows.length) return console.log('no rules yet');
+    console.log('| rule | mistake | state | repeats before | repeats after | days | verdict |\n|---|---|---|---|---|---|---|');
+    for (const r of rows) console.log(`| ${r.id} | ${r.tag} | ${r.state} | ${r.before} | ${r.after} | ${r.days} | ${r.verdict} |`);
+    const g = rows.filter((r) => r.state === 'graduated').length, x = rows.filter((r) => r.state === 'retired').length;
+    console.log(`\n${rows.length} rule(s): ${g} graduated, ${x} retired, ${rows.length - g - x} on probation.`);
   } else if (cmd === 'sync') {
     const target = path.resolve(flag(rest, '--file') || 'CLAUDE.md');
     const list = graduatedRules(events, today, Number(flag(rest, '--max') || 10));

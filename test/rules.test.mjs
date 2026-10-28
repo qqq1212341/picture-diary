@@ -93,3 +93,13 @@ test('regression guard: a graduated rule whose mistake returns goes back on prob
   assert.equal(review(onProbation, '2026-01-23').retire.length, 0, 'not retired for the old repeat');
   assert.equal(review(onProbation, '2026-02-05').graduate.length, 1, '14 quiet days after regressing');
 });
+
+test('report gives every rule a verdict', async () => {
+  const { report } = await import('../scripts/rules.mjs');
+  const ev = [hit('x', '2026-01-01'), hit('x', '2026-01-02'), rule('r001', 'x', '2026-01-02'),
+    hit('y', '2026-01-01'), hit('y', '2026-01-02'), rule('r002', 'y', '2026-01-02'), hit('y', '2026-01-05'), hit('y', '2026-01-06'),
+    { type: 'state', id: 'r002', state: 'retired', date: '2026-01-07' }];
+  const rows = report(ev, '2026-01-10');
+  assert.match(rows[0].verdict, /6 quiet day/);
+  assert.equal(rows[1].verdict, 'retired - did not help');
+});

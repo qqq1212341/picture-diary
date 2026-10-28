@@ -77,6 +77,7 @@ node "${CLAUDE_PLUGIN_ROOT}/scripts/render.mjs" "$HOME/.picture-diary/entries/<d
 
 (Use `$PICTURE_DIARY_HOME` instead of `~/.picture-diary` if set.) It prints the PNG path. The first run installs its renderer by itself; just wait. If no browser exists it writes an HTML file instead and says so.
 Open the PNG with the Read tool and check: nothing clipped, nothing overlapping, the text is in the grid, the drawing is readable. Fix the entry and re-render until it is clean. If the warning says the text needs too many rows, shorten it.
+If the user wants to share it, also render `--wide` (1200×630 card with the repo link) and add `--copy` to put it on the clipboard. Remind them to look for private project names first.
 
 ## 7. Report
 

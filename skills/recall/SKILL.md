@@ -14,6 +14,7 @@ Search, do not preload. Past diaries are never injected wholesale; pull only wha
    grep -rniE "kw1|kw2" "$H/diary" --include='*.md' | head -40
    grep -iE "kw1|kw2" "$H/rules.jsonl"
    node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" status
+   node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" report   # when asked whether the rules are working
    ```
 3. Read only the matching sections of the 1-3 most relevant diaries.
 4. Answer in this order: (a) rules in force that apply to this task (state graduated, active, or retired), (b) what went wrong last time and on which date, (c) what you will do differently now, as a concrete step.
