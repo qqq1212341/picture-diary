@@ -11,7 +11,7 @@
 /plugin install picture-diary@picture-diary
 ```
 
-설치 뒤 «일기 써» 라고 하거나 `/picture-diary:diary` 를 실행합니다. Node 18 이상이 필요하고, PNG 를 굽으려면 구글 크롬(또는 Playwright Chromium)이 있어야 합니다. 처음 굽을 때 `playwright-core` 용 `npm install --omit=dev --prefix ...` 명령이 한 번 안내될 수 있습니다.
+설치 뒤 «일기 써» 라고 하거나 `/picture-diary:diary` 를 실행합니다. Node 18 이상이 필요하고, 처음 그림을 구울 때 한 번만 알아서 준비합니다. `~/.picture-diary/.runtime` 에 `playwright-core` 를 깔고, 크롬·엣지·브레이브 중 있는 걸 씁니다(하나도 없으면 헤드리스 크로미움을 받습니다).
 
 ## 하는 일 세 가지
 

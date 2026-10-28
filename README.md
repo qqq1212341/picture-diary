@@ -11,7 +11,7 @@ Your coding agent writes a diary of what it wasted today, draws it as a kid's pi
 /plugin install picture-diary@picture-diary
 ```
 
-Then say "write the diary" (or `/picture-diary:diary`). Needs Node 18+. For the PNG you need Google Chrome (or Playwright's Chromium). The first render may print one `npm install --omit=dev --prefix ...` command for `playwright-core`; run it once.
+Then say "write the diary" (or `/picture-diary:diary`). Needs Node 18+. The first render sets itself up once: it installs `playwright-core` into `~/.picture-diary/.runtime` and uses your Chrome, Edge or Brave (or downloads a headless Chromium if you have none).
 
 ## Three things it does
 

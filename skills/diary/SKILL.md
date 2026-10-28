@@ -75,7 +75,7 @@ Pick the single funniest or most telling moment of the "wasted" section. Write `
 node "${CLAUDE_PLUGIN_ROOT}/scripts/render.mjs" "$HOME/.picture-diary/entries/<date>.json" [--lang en] [--story]
 ```
 
-(Use `$PICTURE_DIARY_HOME` instead of `~/.picture-diary` if set.) It prints the PNG path. If it says playwright-core is missing, run the `npm install --omit=dev --prefix` command it prints, then retry. If no browser exists it writes an HTML file instead and says so.
+(Use `$PICTURE_DIARY_HOME` instead of `~/.picture-diary` if set.) It prints the PNG path. The first run installs its renderer by itself; just wait. If no browser exists it writes an HTML file instead and says so.
 Open the PNG with the Read tool and check: nothing clipped, nothing overlapping, the text is in the grid, the drawing is readable. Fix the entry and re-render until it is clean. If the warning says the text needs too many rows, shorten it.
 
 ## 7. Report

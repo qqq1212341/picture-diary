@@ -10,7 +10,8 @@
 // Browser: system Chrome -> Playwright's Chromium -> $PICTURE_DIARY_CHROME -> HTML file with instructions.
 import fs from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
+import { execFileSync } from 'node:child_process';
 import { paths, addDays } from './lib/home.mjs';
 import { gridCells, wordCells } from './lib/cells.mjs';
 import { maskPaths } from './lib/mask.mjs';
@@ -134,12 +135,51 @@ body{width:1080px;height:${H}px;background:#e9dfc9;display:flex;align-items:cent
   return { html, width: 1080, height: H, overflow, rows, cell: CELL };
 }
 
+// Known browser binaries, so a machine with Brave/Edge/Chromium but no Chrome still renders.
+const BROWSERS = [
+  '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+  '/Applications/Microsoft Edge.app/Contents/MacOS/Microsoft Edge',
+  '/Applications/Brave Browser.app/Contents/MacOS/Brave Browser',
+  '/Applications/Chromium.app/Contents/MacOS/Chromium',
+  '/usr/bin/google-chrome', '/usr/bin/chromium', '/usr/bin/chromium-browser', '/usr/bin/microsoft-edge',
+  'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
+  'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
+];
+
 async function launch(chromium) {
   const tries = [];
   if (process.env.PICTURE_DIARY_CHROME) tries.push(() => chromium.launch({ executablePath: process.env.PICTURE_DIARY_CHROME }));
-  tries.push(() => chromium.launch({ channel: 'chrome' }), () => chromium.launch(), () => chromium.launch({ channel: 'msedge' }));
+  tries.push(() => chromium.launch({ channel: 'chrome' }), () => chromium.launch());
+  for (const b of BROWSERS) if (fs.existsSync(b)) tries.push(() => chromium.launch({ executablePath: b }));
   for (const t of tries) { try { return await t(); } catch { /* next */ } }
   return null;
+}
+
+// First run inside an installed plugin has no node_modules. Install playwright-core once into the
+// data folder (not the plugin folder, which updates wipe) and, if no browser exists, its headless shell.
+function runtimeDir() { return path.join(paths().home, '.runtime'); }
+
+async function loadChromium(root) {
+  try { return (await import('playwright-core')).chromium; } catch { /* try runtime */ }
+  const rt = runtimeDir();
+  const entry = path.join(rt, 'node_modules', 'playwright-core', 'index.mjs');
+  if (!fs.existsSync(entry)) {
+    if (process.env.PICTURE_DIARY_NO_INSTALL) return null;
+    console.error('first run: installing playwright-core (about 10 MB, once)...');
+    fs.mkdirSync(rt, { recursive: true });
+    try { execFileSync('npm', ['install', '--omit=dev', '--no-audit', '--no-fund', '--silent', '--prefix', rt, 'playwright-core@^1.50.0'], { stdio: 'inherit', shell: process.platform === 'win32' }); }
+    catch { console.error(`could not install. Run: npm install --omit=dev --prefix "${root}"`); return null; }
+  }
+  return (await import(pathToFileURL(entry).href)).chromium;
+}
+
+function installHeadlessShell() {
+  if (process.env.PICTURE_DIARY_NO_INSTALL) return false;
+  const cli = path.join(runtimeDir(), 'node_modules', 'playwright-core', 'cli.js');
+  if (!fs.existsSync(cli)) return false;
+  console.error('no Chrome/Edge/Brave found: downloading a headless Chromium (about 100 MB, once)...');
+  try { execFileSync(process.execPath, [cli, 'install', 'chromium-headless-shell'], { stdio: 'inherit' }); return true; }
+  catch { return false; }
 }
 
 export async function main(argv) {
@@ -162,12 +202,11 @@ export async function main(argv) {
   if (argv.includes('--html')) fs.writeFileSync(htmlFile, built.html);
 
   const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-  let chromium = null;
-  try { ({ chromium } = await import('playwright-core')); } catch { /* handled below */ }
-  const browser = chromium ? await launch(chromium) : null;
+  const chromium = await loadChromium(root);
+  let browser = chromium ? await launch(chromium) : null;
+  if (chromium && !browser && installHeadlessShell()) browser = await launch(chromium);
   if (!browser) {
     fs.writeFileSync(htmlFile, built.html);
-    if (!chromium) console.error(`playwright-core is not installed. Run: npm install --omit=dev --prefix "${root}"`);
     console.error(`No browser found. Wrote ${htmlFile} - open it and print/screenshot at ${built.width}x${built.height},\n` +
       'or install Google Chrome, or run `npx playwright-core install chromium`, or set PICTURE_DIARY_CHROME=/path/to/chrome.');
     process.exit(3);
