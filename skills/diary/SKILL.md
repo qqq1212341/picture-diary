@@ -48,7 +48,7 @@ For each mistake that happened today, give it a short kebab-case tag and record 
 `node "${CLAUDE_PLUGIN_ROOT}/scripts/rules.mjs" hit <tag>`.
 When it says CANDIDATE (same tag on 2+ different days), write one imperative rule sentence and add it:
 `rules.mjs add --tag <tag> --rule "<one sentence>" --source diary/<date>.md`.
-Then `rules.mjs review` (dry run). If it lists GRADUATE or RETIRE, apply with `review --apply` and tell the user in one line each.
+Then `rules.mjs review` (dry run). If it lists GRADUATE, RETIRE or REGRESS, apply with `review --apply` and tell the user in one line each.
 For graduated rules ask whether a hook, linter or test could enforce it instead of a sentence, and offer to write it.
 Only run `rules.mjs sync --file <project CLAUDE.md>` when the user asked for it or that file already has the `<!-- picture-diary:rules -->` block; show `sync --dry-run` first otherwise.
 A newly written rule candidate goes into the picture's red-pen line (`teacher.comment`).
