@@ -1,0 +1,12 @@
+{
+  "name": "picture-diary",
+  "description": "Daily picture diary and a rules ledger for coding agents",
+  "owner": { "name": "Dumb Game Lab" },
+  "plugins": [
+    {
+      "name": "picture-diary",
+      "source": "./",
+      "description": "Daily diary of what the agent wasted, drawn as a kid's picture diary, with a rules ledger that graduates or retires lessons."
+    }
+  ]
+}

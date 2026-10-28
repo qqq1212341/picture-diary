@@ -1,0 +1,15 @@
+{
+  "name": "picture-diary",
+  "version": "0.1.0",
+  "description": "Your coding agent keeps a daily diary of what went wrong, draws it as a kid's picture diary, and turns repeated mistakes into rules that have to prove themselves.",
+  "type": "module",
+  "license": "MIT",
+  "author": "Dumb Game Lab",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "test": "node --test",
+    "sample": "node scripts/render.mjs docs/sample-ko.json --out docs/sample-ko.png && node scripts/render.mjs docs/sample-en.json --lang en --out docs/sample-en.png"
+  },
+  "dependencies": { "playwright-core": "^1.50.0" },
+  "files": [".claude-plugin", "skills", "scripts", "docs", "README.md", "README.ko.md", "LICENSE"]
+}
