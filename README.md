@@ -36,6 +36,12 @@ Then say **"write the diary"** (or `/picture-diary:diary`). After that it remind
 > [!NOTE]
 > Everything is local plain markdown in `~/.picture-diary/`. No server, no upload, no image API. The drawing is SVG the agent writes itself, and the crayon look comes from an SVG filter.
 
+## Real diaries
+
+<img src="examples/2026-10-21.en.png" width="260"> <img src="examples/2026-10-24.en.png" width="260"> <img src="examples/2026-10-27.en.png" width="260">
+
+More in [examples/](examples/): five real days, each with a Korean version.
+
 ## Why
 
 I run five Claude Max accounts and more than ten sessions at once. The same mistakes kept coming back in different sessions: misreading a one-word message, rebuilding something another session was already building, looping on a Stop hook for two hours. No single session remembers. The diary does.
